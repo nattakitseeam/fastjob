@@ -41,7 +41,7 @@
               </div>
               <div class="mb-4">
                 <label class="form-label fw-medium">รูปภาพหน้าปกผลงาน</label>
-                <input type="file" class="form-control" accept="image/*" @change="handleFile">
+                <input ref="fileInput" type="file" class="form-control" accept="image/*" @change="handleFile">
               </div>
               <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm" :disabled="isSubmitting">
                 <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
@@ -83,14 +83,14 @@
                   <tr v-for="item in myServices" :key="item.id">
                     <td class="ps-4">
                       <div class="d-flex align-items-center">
-                        <img :src="item.image_url || 'https://placehold.co/60x60/e9ecef/495057?text=No+Img'" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                        <img :src="fixImageUrl(item.image_url) || 'https://placehold.co/60x60/e9ecef/495057?text=No+Img'" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
                         <div>
                           <div class="fw-bold">{{ item.title }}</div>
                           <small class="text-muted">{{ item.category }}</small>
-                          <!-- Badge แจ้งเตือนสีเหลือง เมื่อมีลูกค้าทักมาใหม่ -->
-                          <div v-if="hasUnread(item.id)" class="mt-1">
+                          <!-- แจ้งเตือนเมื่อมีลูกค้าทักเข้ามาในบริการนี้ -->
+                          <div v-if="getChatCount(item.id) > 0" class="mt-1">
                             <span class="badge bg-warning text-dark shadow-sm">
-                              <i class="bi bi-chat-dots-fill me-1"></i> มีลูกค้าทักมาใหม่!
+                              <i class="bi bi-chat-dots-fill me-1"></i> ลูกค้าทักแชท ({{ getChatCount(item.id) }} คน)
                             </span>
                           </div>
                         </div>
@@ -101,8 +101,8 @@
                     <td class="text-end pe-4">
                       <button @click="openChat(item)" class="btn btn-warning btn-sm rounded-pill me-1 mb-1 fw-bold text-dark position-relative">
                         <i class="bi bi-chat-dots-fill"></i> แชท
-                        <span v-if="hasUnread(item.id)" class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                          <span class="visually-hidden">New alerts</span>
+                        <span v-if="getChatCount(item.id) > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                          {{ getChatCount(item.id) }}
                         </span>
                       </button>
                       <button @click="deleteService(item.id)" class="btn btn-outline-danger btn-sm rounded-pill mb-1">
@@ -132,7 +132,7 @@ export default {
     return {
       user: {},
       myServices: [],
-      serviceMessages: {},
+      inboxList: [],
       isLoading: true,
       isSubmitting: false,
       form: { title: '', category: '', description: '', price: '', image: null },
@@ -149,22 +149,22 @@ export default {
     this.fetchMyServices();
 
     this.pollInterval = setInterval(() => {
-      this.checkChatNotifications();
+      this.fetchInboxChats();
     }, 5000);
   },
   unmounted() {
-    clearInterval(this.pollInterval);
+    if (this.pollInterval) clearInterval(this.pollInterval);
   },
   methods: {
     async fetchMyServices(retries = 3) {
       this.isLoading = true;
       try {
-        const res = await fetch(`http://localhost/fastjob/freelance_api/services.php?freelance_id=${this.user.id}`);
+        const res = await fetch(`/api/services.php?freelance_id=${this.user.id}`);
         if (!res.ok) throw new Error('Network response error');
         const data = await res.json();
         this.myServices = Array.isArray(data) ? data : [];
         this.isLoading = false;
-        this.checkChatNotifications();
+        this.fetchInboxChats();
       } catch (error) {
         if (retries > 0) {
           setTimeout(() => this.fetchMyServices(retries - 1), 1000);
@@ -174,36 +174,20 @@ export default {
         }
       }
     },
-    async checkChatNotifications() {
-      let updatedMessages = { ...this.serviceMessages };
-      for (let item of this.myServices) {
-        try {
-          const res = await fetch(`http://localhost/fastjob/freelance_api/chat.php?service_id=${item.id}`);
-          const msgs = await res.json();
-          if (Array.isArray(msgs)) {
-            updatedMessages[item.id] = msgs;
-          }
-        } catch (err) {
-          console.error('Check chat error:', err);
-        }
+    async fetchInboxChats() {
+      try {
+        const res = await fetch(`/api/chat.php?action=inbox&user_id=${this.user.id}&role=freelance`);
+        const data = await res.json();
+        this.inboxList = Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Check inbox error:', err);
       }
-      this.serviceMessages = updatedMessages;
     },
-    hasUnread(itemId) {
-      const msgs = this.serviceMessages[itemId] || [];
-      if (msgs.length === 0) return false;
-
-      const lastMsg = msgs[msgs.length - 1];
-      const lastReadId = parseInt(localStorage.getItem('last_read_msg_' + itemId) || 0);
-
-      // แปลงเป็น Number ทั้งหมดเพื่อป้องกันบั๊กเปรียบเทียบแบบ String
-      const lastMsgIdNum = Number(lastMsg.id);
-      const lastReadIdNum = Number(lastReadId);
-      const senderIdNum = Number(lastMsg.sender_id);
-      const userIdNum = Number(this.user.id);
-
-      // เช็กว่าไอดีข้อความใหม่กว่าที่เคยอ่าน และผู้ส่งไม่ใช่ตัวฟรีแลนซ์เอง
-      return lastMsgIdNum > lastReadIdNum && senderIdNum !== userIdNum;
+    getChatsForService(serviceId) {
+      return this.inboxList.filter(c => Number(c.service_id) === Number(serviceId));
+    },
+    getChatCount(serviceId) {
+      return this.getChatsForService(serviceId).length;
     },
     handleFile(e) {
       this.form.image = e.target.files[0];
@@ -219,37 +203,52 @@ export default {
       if (this.form.image) fd.append('image', this.form.image);
 
       try {
-        const res = await fetch('http://localhost/fastjob/freelance_api/services.php', { method: 'POST', body: fd });
+        const res = await fetch('/api/services.php', { method: 'POST', body: fd });
         const data = await res.json();
         if (data.status === 'success') {
           alert('สร้างโพสต์สำเร็จ! กรุณารอ Admin อนุมัติ');
           this.form = { title: '', category: '', description: '', price: '', image: null };
+          if (this.$refs.fileInput) this.$refs.fileInput.value = '';
           this.fetchMyServices();
         } else {
           alert('เกิดข้อผิดพลาด: ' + (data.message || 'ไม่สามารถบันทึกได้'));
         }
       } catch (err) {
+        console.error('Create service error:', err);
         alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
       } finally {
         this.isSubmitting = false;
       }
     },
     openChat(item) {
-      this.$router.push({
-        name: 'chat',
-        params: { serviceId: item.id },
-        query: { title: item.title }
-      });
+      const chats = this.getChatsForService(item.id);
+      if (chats.length === 1) {
+        // มีลูกค้าทักมา 1 คน พาเข้าห้องแชทของลูกค้าคนนั้นตรงๆ
+        this.$router.push({
+          name: 'chat',
+          params: {
+            serviceId: item.id,
+            customerId: chats[0].customer_id
+          }
+        });
+      } else {
+        // มีลูกค้าหลายคนหรือยังไม่มีคนทัก พาไปหน้า Inbox เพื่อเลือกรายชื่อ
+        this.$router.push('/inbox');
+      }
     },
     async deleteService(id) {
       if (confirm('ยืนยันลบโพสต์นี้?')) {
         try {
-          await fetch(`http://localhost/fastjob/freelance_api/services.php?id=${id}`, { method: 'DELETE' });
+          await fetch(`/api/services.php?id=${id}`, { method: 'DELETE' });
           this.fetchMyServices();
         } catch (err) {
           alert('ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
         }
       }
+    },
+    fixImageUrl(url) {
+      if (!url) return '';
+      return url.replace('http://localhost/fastjob/freelance_api', '/api');
     },
     statusBadge(status) {
       if (status === 'อนุมัติ') return 'badge bg-success rounded-pill px-3';

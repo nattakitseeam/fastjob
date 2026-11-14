@@ -1,7 +1,8 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Private-Network: true");
 header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -14,7 +15,6 @@ $user = "root";
 $pass = "";
 $dbname = "freelance_db";
 
-// ปิดการแสดง Error ดิบๆ และดักจับข้อผิดพลาดไม่ให้หน้าเว็บพัง
 mysqli_report(MYSQLI_REPORT_OFF);
 $conn = @new mysqli($host, $user, $pass, $dbname);
 

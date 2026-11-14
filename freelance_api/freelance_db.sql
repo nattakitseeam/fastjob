@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 14, 2026 at 09:13 AM
+-- Generation Time: Nov 14, 2026 at 09:40 AM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.1.12
 
@@ -41,22 +41,38 @@ CREATE TABLE `chats` (
 --
 
 INSERT INTO `chats` (`id`, `service_id`, `customer_id`, `sender_id`, `message`, `created_at`) VALUES
-(1, 7, 0, 3, 'hello', '2026-11-14 07:34:50'),
-(2, 7, 0, 2, 'hello kub', '2026-11-14 07:37:06'),
-(3, 7, 0, 2, 'ฟหกฟกห', '2026-11-14 07:39:12'),
-(4, 7, 0, 2, 'หกหก้ห่ก', '2026-11-14 07:39:48'),
-(5, 7, 0, 3, 'sssss', '2026-11-14 07:40:00'),
-(6, 7, 0, 3, '1223', '2026-11-14 07:42:43'),
-(7, 7, 0, 3, 'ssss', '2026-11-14 07:43:34'),
-(8, 7, 0, 3, 'ssswwwwwwww', '2026-11-14 07:43:57'),
-(9, 7, 0, 3, 'ssssssqq', '2026-11-14 07:44:34'),
-(10, 7, 0, 4, 'sadsad', '2026-11-14 07:45:46'),
-(11, 7, 4, 4, 'hello', '2026-11-14 07:50:48'),
-(12, 7, 5, 5, 'jiiii', '2026-11-14 07:51:27'),
-(13, 7, 4, 4, 'ssss', '2026-11-14 07:56:20'),
-(14, 7, 4, 4, 'wwwwwwwwwwwwww', '2026-11-14 07:57:09'),
-(15, 7, 5, 5, 'klosd', '2026-11-14 07:58:59'),
-(16, 7, 4, 4, '322323', '2026-11-14 08:10:20');
+(18, 10, 5, 5, 'dd', '2026-11-14 07:54:21'),
+(19, 10, 5, 2, 'kuy', '2026-11-14 07:54:41'),
+(20, 10, 4, 4, 'ddkub', '2026-11-14 07:55:34'),
+(21, 10, 4, 2, 'kuyy', '2026-11-14 07:55:54'),
+(22, 11, 5, 5, 'dddddddd', '2026-11-14 07:57:05'),
+(23, 11, 4, 4, 'd kub', '2026-11-14 07:57:27'),
+(24, 12, 4, 4, 'sadasd', '2026-11-14 08:12:54'),
+(25, 12, 4, 7, 'sssss', '2026-11-14 08:13:41');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reviews`
+--
+
+CREATE TABLE `reviews` (
+  `id` int(11) NOT NULL,
+  `service_id` int(11) NOT NULL,
+  `freelance_id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `rating` tinyint(4) NOT NULL DEFAULT 5,
+  `comment` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reviews`
+--
+
+INSERT INTO `reviews` (`id`, `service_id`, `freelance_id`, `customer_id`, `rating`, `comment`, `created_at`) VALUES
+(1, 12, 7, 4, 4, 'งานดีครับทำสวยงานเร็ว', '2026-11-14 08:34:13'),
+(2, 12, 7, 5, 5, 'ดีครับ', '2026-11-14 08:39:03');
 
 -- --------------------------------------------------------
 
@@ -81,8 +97,9 @@ CREATE TABLE `services` (
 --
 
 INSERT INTO `services` (`id`, `freelance_id`, `title`, `category`, `description`, `price`, `image_path`, `status`, `created_at`) VALUES
-(7, 2, 'asd', 'ตัดต่อ & วิดีโอ', 'sadasd', '5000.00', '1794641405_6af80dfd69611.jpg', 'อนุมัติ', '2026-11-14 07:30:05'),
-(8, 2, 'ssss', 'กราฟิก & ดีไซน์', 'sdd', '10000000.00', '1794643641_6af816b9f1203.jpg', 'อนุมัติ', '2026-11-14 08:07:21');
+(10, 2, 'ฟกฟก', 'กราฟิก & ดีไซน์', 'ฟกฟก', '44614.00', '1794642287_6af8116f392b2.PNG', 'ไม่อนุมัติ', '2026-11-14 07:44:47'),
+(11, 2, 'dadadada', 'การตลาด & โฆษณา', 'adadada', '67.00', '1794643000_6af814381d195.PNG', 'ไม่อนุมัติ', '2026-11-14 07:56:40'),
+(12, 7, 'รับทำห้องนอน', 'กราฟิก & ดีไซน์', 'ทำสวยมากค่ะ', '75000.00', '1794643311_6af8156f0240a.jpg', 'อนุมัติ', '2026-11-14 08:01:51');
 
 -- --------------------------------------------------------
 
@@ -108,7 +125,9 @@ INSERT INTO `users` (`id`, `username`, `password`, `fullname`, `role`) VALUES
 (3, 'customer1', '1234', 'คุณลูกค้า ใจดี', 'customer'),
 (4, 'folk', '1234', 'folk', 'customer'),
 (5, 'mon', '1234', 'mon', 'customer'),
-(6, 'folk555', '1234', 'folk555', 'freelance');
+(6, 'folk555', '1234', 'folk555', 'freelance'),
+(7, 'test1', '1234', 'test1', 'freelance'),
+(8, 'test2', '1234', 'test2', 'freelance');
 
 --
 -- Indexes for dumped tables
@@ -121,6 +140,12 @@ ALTER TABLE `chats`
   ADD PRIMARY KEY (`id`),
   ADD KEY `service_id` (`service_id`),
   ADD KEY `sender_id` (`sender_id`);
+
+--
+-- Indexes for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `services`
@@ -144,19 +169,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `chats`
 --
 ALTER TABLE `chats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+
+--
+-- AUTO_INCREMENT for table `reviews`
+--
+ALTER TABLE `reviews`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `services`
 --
 ALTER TABLE `services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables

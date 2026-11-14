@@ -80,33 +80,43 @@ export default {
   },
   methods: {
     async handleLogin() {
-      const res = await fetch('http://localhost/fastjob/freelance_api/login.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.loginForm)
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        this.$emit('login-success');
-        if (data.user.role === 'admin') this.$router.push('/admin');
-        else if (data.user.role === 'freelance') this.$router.push('/freelance');
-        else this.$router.push('/');
-      } else {
-        alert(data.message);
+      try {
+        const res = await fetch('/api/login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.loginForm)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          this.$emit('login-success');
+          if (data.user.role === 'admin') this.$router.push('/admin');
+          else if (data.user.role === 'freelance') this.$router.push('/freelance');
+          else this.$router.push('/');
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบ XAMPP (Apache/MySQL)');
       }
     },
     async handleRegister() {
-      const res = await fetch('http://localhost/fastjob/freelance_api/register.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.regForm)
-      });
-      const data = await res.json();
-      alert(data.message);
-      if (data.status === 'success') {
-        this.isRegister = false;
-        this.loginForm.username = this.regForm.username;
+      try {
+        const res = await fetch('/api/register.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.regForm)
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.status === 'success') {
+          this.isRegister = false;
+          this.loginForm.username = this.regForm.username;
+        }
+      } catch (err) {
+        console.error('Register error:', err);
+        alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบ XAMPP (Apache/MySQL)');
       }
     }
   }

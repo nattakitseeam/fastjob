@@ -68,7 +68,7 @@
                 <td><span class="badge bg-light text-dark border">{{ item.category }}</span></td>
                 <td class="fw-bold text-primary">฿{{ Number(item.price).toLocaleString() }}</td>
                 <td>
-                  <a v-if="item.image_url" :href="item.image_url" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                  <a v-if="item.image_url" :href="fixImageUrl(item.image_url)" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
                     <i class="bi bi-image"></i> ดูรูป
                   </a>
                   <span v-else class="text-muted small">ไม่มีรูป</span>
@@ -125,7 +125,7 @@ export default {
     async fetchAllServices(retries = 3) {
       this.isLoading = true;
       try {
-        const res = await fetch('http://localhost/fastjob/freelance_api/services.php');
+        const res = await fetch('/api/services.php');
         if (!res.ok) throw new Error('Network response error');
         const data = await res.json();
         this.services = Array.isArray(data) ? data : [];
@@ -141,15 +141,21 @@ export default {
     },
     async updateStatus(id, status) {
       try {
-        await fetch('http://localhost/fastjob/freelance_api/services.php', {
+        const res = await fetch('/api/services.php', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: id, status: status })
         });
-        this.fetchAllServices();
+        if (!res.ok) throw new Error('Update failed');
+        await this.fetchAllServices();
       } catch (err) {
-        alert('อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+        console.error('Update status error:', err);
+        alert('อัปเดตสถานะไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
       }
+    },
+    fixImageUrl(url) {
+      if (!url) return '';
+      return url.replace('http://localhost/fastjob/freelance_api', '/api');
     },
     statusBadge(status) {
       if (status === 'อนุมัติ') return 'badge bg-success rounded-pill px-3';
